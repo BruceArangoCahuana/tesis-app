@@ -1,6 +1,5 @@
 const  {Sequelize} = require('sequelize');
 const conexion = require("../database/conexion");
-const Usuarios = require("./Usuarios");
 
 const Documentos = require("./Documentos");
 const DetalleFormato = require("./DetalleFormato");
