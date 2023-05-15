@@ -1,7 +1,8 @@
 const express = require("express");
 const router = require("./Router");
+const bodyParser = require("body-parser")
 const conexion = require("./database/conexion");
-
+const cors = require("cors");
 
 require("./EntIty/Usuarios");
 require("./EntIty/Documentos");
@@ -20,6 +21,11 @@ conexion.sync()
 
 
 const app =  express();
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({
+    extended:true
+}))
+app.use(cors())
 app.use("/",router());
 
 const port = 3500
