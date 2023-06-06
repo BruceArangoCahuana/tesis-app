@@ -1,10 +1,10 @@
 const  {Sequelize} = require('sequelize');
 const conexion = require("../database/conexion");
 
-const Documentos = require("./Documentos");
+const Folios = require("./Folios");
 const Usuarios =  require("./Usuarios");
 
-const MaestroDocumento = conexion.define("MAESTRO_DOCUMENTO",{
+const MaestroFolio = conexion.define("MAESTRO_FOLIO",{
     idmaestro:{
         type:Sequelize.INTEGER,
         primaryKey:true,
@@ -12,6 +12,6 @@ const MaestroDocumento = conexion.define("MAESTRO_DOCUMENTO",{
     },
 })
 
-MaestroDocumento.belongsTo(Documentos);
-MaestroDocumento.belongsTo(Usuarios);
-module.exports = MaestroDocumento;
+MaestroFolio.belongsTo(Folios);
+MaestroFolio.belongsTo(Usuarios);
+module.exports = MaestroFolio;

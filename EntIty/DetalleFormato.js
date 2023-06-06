@@ -1,6 +1,8 @@
 const {Sequelize} = require("sequelize");
 const conexion = require("../database/conexion");
 const Usuarios = require("./Usuarios");
+const Lineas = require("./Lineas")
+const SubLineas = require("./SubLineas")
 
 const DetalleFormato = conexion.define("DETALLE_FORMATO",{
     iddetallefo:{
@@ -9,12 +11,6 @@ const DetalleFormato = conexion.define("DETALLE_FORMATO",{
         autoIncrement:true
     },
     nombre_pro:{
-        type:Sequelize.STRING
-    },
-    linea_inv:{
-        type:Sequelize.STRING
-    },
-    sub_linea:{
         type:Sequelize.STRING
     },
     nombre_grupo:{
@@ -32,10 +28,55 @@ const DetalleFormato = conexion.define("DETALLE_FORMATO",{
     co_investigador:{
         type:Sequelize.STRING
     },
+    co_investigador_dos:{
+    type:Sequelize.STRING
+    },
+    co_investigador_tres:{
+    type:Sequelize.STRING
+    },
+    co_investigador_cuatro:{
+        type:Sequelize.STRING
+    },
+    co_investigador_cinco:{
+        type:Sequelize.STRING
+    },
+    co_investigador_seis:{
+        type:Sequelize.STRING
+    },
     estudiante_par:{
         type:Sequelize.STRING
     },
+    estudiante_par_dos:{
+        type:Sequelize.STRING
+    },
+    estudiante_par_tres:{
+        type:Sequelize.STRING
+    },
+    estudiante_par_cuatro:{
+        type:Sequelize.STRING
+    },
+    estudiante_par_cinco:{
+        type:Sequelize.STRING
+    },
+    estudiante_par_seis:{
+        type:Sequelize.STRING
+    },
     tesista:{
+        type:Sequelize.STRING
+    },
+    tesista_dos:{
+        type:Sequelize.STRING
+    },
+    tesista_tres:{
+        type:Sequelize.STRING
+    },
+    tesista_cuatro:{
+        type:Sequelize.STRING
+    },
+    tesista_cinco:{
+        type:Sequelize.STRING
+    },
+    tesista_seis:{
         type:Sequelize.STRING
     },
     resumen_proyecto:{
@@ -71,4 +112,6 @@ const DetalleFormato = conexion.define("DETALLE_FORMATO",{
 })
 
 DetalleFormato.belongsTo(Usuarios);
+DetalleFormato.belongsTo(Lineas);
+DetalleFormato.belongsTo(SubLineas);
 module.exports = DetalleFormato;

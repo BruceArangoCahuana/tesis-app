@@ -5,7 +5,6 @@ const conexion = require("./database/conexion");
 const cors = require("cors");
 
 require("./EntIty/Usuarios");
-require("./EntIty/Documentos");
 require("./EntIty/Fuentes");
 require("./EntIty/Sedes");
 require("./EntIty/Estados");
@@ -15,8 +14,13 @@ require("./EntIty/DetalleFormato");
 require("./EntIty/Roles");
 require("./EntIty/Fomatos");
 require("./EntIty/MaestroDocumento");
+require("./EntIty/Documentos");
+require("./EntIty/Folios");
+require("./EntIty/Lineas");
+
+
 conexion.sync()
-    .then(() =>{ console.log("Conexion a la database")})
+    .then(() =>{ console.log("database a la database")})
     .catch(err =>{console.log(err)})
 
 
@@ -26,6 +30,7 @@ app.use(bodyParser.urlencoded({
     extended:true
 }))
 app.use(cors())
+app.use(express.static('Public/document'))
 app.use("/",router());
 
 const port = 3500

@@ -1,9 +1,10 @@
 const {Sequelize} = require("sequelize");
 const  conexion = require("../database/conexion")
-const Roles = require("./Roles");
 
 const Usuarios = require("./Usuarios");
 const Estados = require("./Estados");
+const Sedes = require("./Sedes");
+const Folios = require("./Folios")
 
 const Documentos = conexion.define("DOCUMENTOS",{
     iddocumentos:{
@@ -17,13 +18,17 @@ const Documentos = conexion.define("DOCUMENTOS",{
     fecha_registro:{
         type:Sequelize.DATE
     },
-    nombre:{
-        type: Sequelize.STRING
+    codigodoc:{
+        type: Sequelize.STRING(10)
     },
-    interesados:{
+    titulo:{
         type: Sequelize.STRING
     }
 })
+
+
 Documentos.belongsTo(Usuarios);
 Documentos.belongsTo(Estados);
+Documentos.belongsTo(Sedes);
+
 module.exports = Documentos;
