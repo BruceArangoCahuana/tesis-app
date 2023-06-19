@@ -11,8 +11,7 @@ const DetalleFormato = require("../EntIty/DetalleFormato");
 const Lineas = require("../EntIty/Lineas");
 const Sublinea = require("../EntIty/SubLineas");
 const Formatos = require("../EntIty/Fomatos");
-
-
+const MaestroDocumento = require("../EntIty/MaestroDocumento");
 
 const { Op } = require('sequelize');
 
@@ -120,7 +119,45 @@ exports.getUser = async (req,res,next)=>{
         })
     }
 }
+exports.findALLRevisor = async(req,res,next) =>{
+    try {
+        const usuarios  =  await  Usuarios.findAll({
+            where:{
+                ROLEIdroles:3
+            },
+            attributes: ['idusuario','correo', 'active','ROLEIdroles'],
+            include: [
+                {model: Roles}
+            ]
+        })
+        res.json(usuarios)
+    }catch (error) {
+        console.log(error)
+        res.status(500).err(error);
+        res.json({
+            message:"error al traer data"
+        })
+    }
+}
 
+exports.findOneRevisor = async (req,res,next) =>{
+    const id = req.params.id
+    try {
+        const usuarios  =  await  Usuarios.findOne({
+            where:{
+                ROLEIdroles:id
+            },
+            attributes: ['idusuario','correo', 'active','ROLEIdroles']
+        })
+        res.json(usuarios)
+    }catch (error) {
+        console.log(error)
+        res.status(500).err(error);
+        res.json({
+            message:"error al traer data"
+        })
+    }
+}
 exports.getRoles = async (req,res,next) =>{
     try {
         const roles =  await  Roles.findAll({})
@@ -216,6 +253,130 @@ exports.getFormatoUser = async(req, res, next) =>{
     }
 }
 
+exports.aprobarDocumento = async (req, res, next) =>{
+    const id = req.params.id;
+    try {
+        await Documento.update(req.body,{
+            where:{
+                FOLIOIdfolio:id
+            }
+        })
+        res.status(200).json({ message: "Se actulizo correctamente" })
+    }catch (error) {
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al realizar operacion',
+        });
+    }
+}
+
+exports.findOneIdPortafolio = async(req, res, next) =>{
+    const id = req.params.id;
+    try {
+        const portafolio = await  Portafolios.findOne({
+            where:{
+                idfolio:id
+            }
+        })
+        res.json(portafolio)
+    }catch (error){
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al traer data',
+        });
+    }
+}
+exports.getAsignar = async (req, res, next) =>{
+    let busqueda = req.query.busqueda
+    const desde = Number(req.query.desde) || 0
+    const registro = 10
+    const validPageNumber = desde > 0 ? desde : 1;
+    let whereCondition = {};
+    if (busqueda) {
+        whereCondition = {
+            correo: {
+                [Op.like]: `${busqueda}%`
+            }
+        };
+    }
+    try {
+
+        const portafolio = await  MaestroDocumento.findAll({
+           attributes:["USUARIOIdusuario","idmaestro"],
+            include: [
+                {
+                    model: Portafolios,
+                    include:[
+                        {
+                            model: Documento,
+                            include:[
+                                {model:Estados}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    model:Usuarios,
+                    attributes:["idusuario","correo"],
+                }
+            ],
+            group:"USUARIOIdusuario",
+            limit:registro,
+            offset:(validPageNumber - 1) * registro
+        })
+        res.json({
+            portafolio:portafolio,
+            total:Math.ceil(await  MaestroDocumento.count() / registro)
+        })
+    }catch (error) {
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al traer data',
+        });
+    }
+}
+exports.getOneAsignacion = async (req, res, next) =>{
+    const id = req.params.id;
+    try {
+
+        const portafolio = await  MaestroDocumento.findAll({
+            where:{
+                USUARIOIdusuario:id
+            },
+            attributes:["idmaestro"],
+            include: [
+                {
+                    model: Portafolios,
+                    include:[
+                        {
+                            model: Documento,
+                            include:[
+                                {model:Estados}
+                            ]
+                        },
+                        {
+                            model: Sedes,
+                        }
+                    ]
+                },
+                {
+                    model:Usuarios,
+                    attributes:["idusuario","correo"]
+                }
+            ]
+        })
+        res.json(portafolio)
+    }catch (error) {
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al traer data',
+        });
+    }
+}
 exports.findOneFormato = async (req, res, next) =>{
     const id = req.params.id;
     const  iddetalle = req.params.iddetalle;
@@ -247,64 +408,71 @@ exports.findOneFormato = async (req, res, next) =>{
 exports.getPorfolio = async (req, res, next) => {
     const id = req.params.id;
     let busqueda = req.query.busqueda;
-    let codigoFolio = req.query.date;
     const desde = Number(req.query.desde) || 0;
     const registro = 5;
     const validPageNumber = desde > 0 ? desde : 1;
-    let whereCondition = {};
-
-    if (busqueda) {
-        whereCondition = {
-            USUARIOIdusuario: id,
-            name: {
-                [Op.like]: `${busqueda}%`,
-            },
-        }
-    }
 
     try {
-        const folio = await Portafolios.findAll({
-            where: whereCondition,
-            attributes: ['idfolio', 'fecha_registro', 'codigofolio', 'name', 'interesados'],
-            include: [
-                {
-                    model: Documento,
-                    include: [
-                        {
-                            model: Usuarios,
-                            attributes: ['correo'],
-                        },
-                        {
-                            model: Estados,
-                            attributes: ['name'],
-                        },
-                        {
-                            model: Sedes,
-                            attributes: ['name'],
-                        },
-                        {
-                            model: Portafolios,
-                            attributes: ['name'],
-                        },
-                    ],
+        const usuario = await Portafolios.findOne({
+            where:{
+                USUARIOIdusuario: id,
+            }
+        })
+        if(usuario){
+            const folio = await Portafolios.findAll({
+                where:  {
+                    USUARIOIdusuario: id,
+                    name: {
+                        [Op.like]: `${busqueda}%`,
+                    },
                 },
-                {
-                    model: Usuarios,
-                    attributes: ['correo'],
-                },
-                {
-                    model: Sedes,
-                    attributes: ['name'],
-                },
-            ],
-            limit: registro,
-            offset: (validPageNumber - 1) * registro,
-        });
+                attributes: ['idfolio', 'fecha_registro', 'codigofolio', 'name', 'interesados'],
+                include: [
+                    {
+                        model: Documento,
+                        include: [
+                            {
+                                model: Usuarios,
+                                attributes: ['correo'],
+                            },
+                            {
+                                model: Estados,
+                                attributes: ['name'],
+                            },
+                            {
+                                model: Sedes,
+                                attributes: ['name'],
+                            },
+                            {
+                                model: Portafolios,
+                                attributes: ['name'],
+                            },
+                        ],
+                    },
+                    {
+                        model: Usuarios,
+                        attributes: ['correo'],
+                    },
+                    {
+                        model: Sedes,
+                        attributes: ['name'],
+                    },
+                ],
+                limit: registro,
+                offset: (validPageNumber - 1) * registro,
+            });
+            res.json({
+                folio: folio,
+                total: Math.ceil(await Documento.count() / registro),
+            });
+        }else {
+            res.json({
+                folio:[],
+                total: Math.ceil(await Documento.count() / registro)
+            })
+        }
 
-        res.json({
-            folio: folio,
-            total: Math.ceil(await Documento.count() / registro),
-        });
+
     } catch (error) {
         console.log(error);
         res.status(500).err(error);
@@ -313,7 +481,19 @@ exports.getPorfolio = async (req, res, next) => {
         });
     }
 };
+exports.getAllPorfolio = async (req, res, next) =>{
 
+    try {
+        const portafolio = await Portafolios.findAll({
+            include:[
+                {model:Sedes}
+            ]
+        });
+        res.json(portafolio)
+    }catch (e) {
+        return  res.status(500).json({message:"erro"})
+    }
+}
 exports.resetAtive = async (req,res,next) =>{
     const id = req.params.id
     try {
@@ -342,9 +522,9 @@ exports.deleteAtive = async(req,res,next) =>{
         res.status(200).json({
             message:"error al crear usuario"
         })
-    }catch (e) {
-        console.log(error)
-        res.status(500).err(error);
+    }catch (err) {
+        console.log(err)
+        res.status(500).err(err);
         res.json({
             message:"error al eliminar"
         })
@@ -384,6 +564,22 @@ exports.createFormato = async (req,res,next) =>{
     }
 }
 
+exports.asignar = async (req,res,next) =>{
+    const  asignar= new MaestroDocumento(req.body)
+    try {
+        await  asignar.save()
+        res.json({
+            message:"Se aigno el revisor correctamente"
+        })
+    }catch (err) {
+        console.log(err)
+        res.status(500).err(err);
+        res.json({
+            message:"error al crear"
+        })
+    }
+}
+
 exports.createPortafolio = async(req,res,next) =>{
     const portafolio = new Portafolios(req.body)
     try {
@@ -392,8 +588,8 @@ exports.createPortafolio = async(req,res,next) =>{
             message:"Se creo correctamente el portafolio"
         })
     }catch (err) {
-        console.log(error)
-        res.status(500).err(error);
+        console.log(err)
+        res.status(500).err(err);
         res.json({
             message:"error al crear"
         })

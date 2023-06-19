@@ -114,7 +114,7 @@ exports.getForPorta = async (req,res,next) =>{
     }
 }
 exports.getDocumentsId = async (req,res,next) =>{
-   // const { id,idportafolio } = req.params;
+   const { id,idportafolio } = req.params;
 
     try {
         const documentos =  await  Documento.findAll({
