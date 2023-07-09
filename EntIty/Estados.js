@@ -9,7 +9,22 @@ const Estados = conexion.define("ESTADOS",{
     },
     name:{
         type: Sequelize.STRING
-    }
+    },
+    ShowAlumno:{
+        type: Sequelize.BOOLEAN
+    },
+    ShowSecretaria:{
+        type: Sequelize.BOOLEAN
+    },
+    ShowPresidente:{
+        type: Sequelize.BOOLEAN
+    },
+    ShowRevisor:{
+        type: Sequelize.BOOLEAN
+    },
+    ShowInvestigador:{
+        type: Sequelize.BOOLEAN
+    },
 })
 
 module.exports = Estados;

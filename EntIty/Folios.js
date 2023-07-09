@@ -3,6 +3,7 @@ const  conexion = require("../database/conexion")
 const Usuarios = require("./Usuarios");
 const Sedes = require("./Sedes");
 const Documentos = require("./Documentos");
+const Escuelas = require("./Escuelas");
 
 const Folios = conexion.define("FOLIOS",{
     idfolio:{
@@ -26,6 +27,7 @@ const Folios = conexion.define("FOLIOS",{
 
 Folios.belongsTo(Usuarios);
 Folios.belongsTo(Sedes);
+Folios.belongsTo(Escuelas);
 Folios.hasMany(Documentos);
 Documentos.belongsTo(Folios);
 

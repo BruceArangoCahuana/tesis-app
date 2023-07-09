@@ -10,7 +10,6 @@ require("./EntIty/Sedes");
 require("./EntIty/Estados");
 require("./EntIty/Escuelas");
 require("./EntIty/Proyectos");
-require("./EntIty/DetalleFormato");
 require("./EntIty/Roles");
 require("./EntIty/Fomatos");
 require("./EntIty/MaestroDocumento");

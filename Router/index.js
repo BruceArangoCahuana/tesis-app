@@ -28,16 +28,20 @@ module.exports =  () =>{
     router.get("/sub-lineas",HomeController.getSubLineas);
     router.get("/detalle-formato/:id",HomeController.getDetelleFormato);
     router.get("/getFormato/:id",HomeController.getFormatoUser);
+    router.get("/getFormato/all",HomeController.getFormatoAll);
+    router.get("/formatos/todos",HomeController.getFormatotodo);
     router.get("/findOnedetalle/:id/:iddetalle",HomeController.findOneFormato);
+    router.get("/formatoId/formato/:id",HomeController.findOneFormatoId);
     router.get("/porfolio-all/todo",HomeController.getAllPorfolio);
 
 
 
     router.post("/porfolio",HomeController.createPortafolio);
-    router.post("/formato",HomeController.createDetalleFormato);
-    router.post("/formato-parcial",HomeController.createFormato);
+    router.post("/formato",HomeController.createFormato);
     router.post("/asignar",HomeController.asignar);
-    router.post("/aprobar/portafolio/:id",HomeController.aprobarDocumento);
+    router.post("/aprobar/documentos/:id",HomeController.aprobarDocumento);
+    router.put("/editFormat/:id/:iddetalle",HomeController.editFormato);
+    router.put("/formatoId/edit/:id",HomeController.editFormatoId);
 
 
     router.get("/user",HomeController.getUser);

@@ -7,11 +7,11 @@ const Roles = require("../EntIty/Roles");
 const Usuarios = require("../EntIty/Usuarios");
 const Portafolios = require("../EntIty/Folios");
 const Documento = require("../EntIty/Documentos");
-const DetalleFormato = require("../EntIty/DetalleFormato");
 const Lineas = require("../EntIty/Lineas");
 const Sublinea = require("../EntIty/SubLineas");
 const Formatos = require("../EntIty/Fomatos");
 const MaestroDocumento = require("../EntIty/MaestroDocumento");
+const Escuela = require("../EntIty/Escuelas");
 
 const { Op } = require('sequelize');
 
@@ -238,7 +238,26 @@ exports.getFormatoUser = async(req, res, next) =>{
                 USUARIOIdusuario:id
             },
             include: [
-                {model: DetalleFormato},
+                {model: Proyectos},
+                {model: Fuentes},
+                {model: Escuela},
+                {model: Sedes}
+            ]
+        })
+        res.json(formato)
+    }catch (error){
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al traer data',
+        });
+    }
+}
+
+exports.getFormatoAll = async (req, res, next) =>{
+    try {
+        const formato = await  Formatos.findAll({
+            include: [
                 {model: Proyectos},
                 {model: Fuentes}
             ]
@@ -252,13 +271,44 @@ exports.getFormatoUser = async(req, res, next) =>{
         });
     }
 }
-
+exports.getFormatotodo = async(req, res, next) =>{
+    let busqueda = req.query.busqueda
+    const desde = Number(req.query.desde) || 0
+    const registro = 5
+    const validPageNumber = desde > 0 ? desde : 1;
+    let whereCondition = {};
+    try {
+        const formato = await  Formatos.findAll({
+            include: [
+                {model: Proyectos},
+                {model: Fuentes},
+                {model: Usuarios,where:
+                        busqueda ? { correo: { [Op.like]: `${busqueda}%` } } : {}
+                    },
+                {model: Sedes},
+                {model: Escuela}
+            ],
+            limit:registro,
+            offset:(validPageNumber - 1) * registro
+        })
+        res.json({
+            formato:formato,
+            total:Math.ceil(await  Formatos.count() / registro)
+        })
+    }catch (error){
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al traer data',
+        });
+    }
+}
 exports.aprobarDocumento = async (req, res, next) =>{
     const id = req.params.id;
     try {
         await Documento.update(req.body,{
             where:{
-                FOLIOIdfolio:id
+                iddocumentos:id
             }
         })
         res.status(200).json({ message: "Se actulizo correctamente" })
@@ -291,9 +341,12 @@ exports.findOneIdPortafolio = async(req, res, next) =>{
 exports.getAsignar = async (req, res, next) =>{
     let busqueda = req.query.busqueda
     const desde = Number(req.query.desde) || 0
+    const iduser = Number(req.query.iduser)
+    const rolid = Number(req.query.rolid)
     const registro = 10
     const validPageNumber = desde > 0 ? desde : 1;
     let whereCondition = {};
+    let whereConditionRol = {};
     if (busqueda) {
         whereCondition = {
             correo: {
@@ -302,34 +355,71 @@ exports.getAsignar = async (req, res, next) =>{
         };
     }
     try {
-
-        const portafolio = await  MaestroDocumento.findAll({
-           attributes:["USUARIOIdusuario","idmaestro"],
-            include: [
-                {
-                    model: Portafolios,
-                    include:[
-                        {
-                            model: Documento,
-                            include:[
-                                {model:Estados}
-                            ]
-                        }
-                    ]
+        if(rolid==2) {
+            const portafolio = await MaestroDocumento.findAll({
+                attributes:["USUARIOIdusuario","idmaestro"],
+                 include: [
+                     {
+                         model: Portafolios,
+                         include:[
+                             {
+                                 model: Documento,
+                                 include:[
+                                     {model:Estados}
+                                 ]
+                             },
+                             {
+                                 model: Sedes,
+                             }
+                         ]
+                     },
+                     {
+                         model:Usuarios,
+                         attributes:["idusuario","correo"],
+                     }
+                 ],
+                 group:"USUARIOIdusuario",
+                 limit:registro,
+                 offset:(validPageNumber - 1) * registro
+             })
+             res.json({
+                 portafolio:portafolio,
+                 total:Math.ceil(await  MaestroDocumento.count() / registro)
+             })
+        }else{
+            const portafolio = await  MaestroDocumento.findAll({
+                where:{
+                    USUARIOIdusuario:iduser
                 },
-                {
-                    model:Usuarios,
-                    attributes:["idusuario","correo"],
-                }
-            ],
-            group:"USUARIOIdusuario",
-            limit:registro,
-            offset:(validPageNumber - 1) * registro
-        })
-        res.json({
-            portafolio:portafolio,
-            total:Math.ceil(await  MaestroDocumento.count() / registro)
-        })
+                attributes:["USUARIOIdusuario","idmaestro"],
+                 include: [
+                     {
+                         model: Portafolios,
+                         include:[
+                             {
+                                 model: Documento,
+                                 include:[
+                                     {model:Estados}
+                                 ]
+                             }, {
+                                 model: Sedes,
+                             }
+                         ]
+                     },
+                     {
+                         model:Usuarios,
+                         attributes:["idusuario","correo"],
+                     }
+                 ],
+                 group:"USUARIOIdusuario",
+                 limit:registro,
+                 offset:(validPageNumber - 1) * registro
+             })
+             res.json({
+                 portafolio:portafolio,
+                 total:Math.ceil(await  MaestroDocumento.count() / registro)
+             })
+        }
     }catch (error) {
         console.log(error);
         res.status(500).err(error);
@@ -340,6 +430,14 @@ exports.getAsignar = async (req, res, next) =>{
 }
 exports.getOneAsignacion = async (req, res, next) =>{
     const id = req.params.id;
+    let busqueda = req.query.busqueda
+    const desde = Number(req.query.desde) || 0
+    const iduser = Number(id)
+    const registro = 10
+    const validPageNumber = desde > 0 ? desde : 1;
+    let whereCondition = {};
+    let whereConditionRol = {};
+
     try {
 
         const portafolio = await  MaestroDocumento.findAll({
@@ -359,6 +457,9 @@ exports.getOneAsignacion = async (req, res, next) =>{
                         },
                         {
                             model: Sedes,
+                        },
+                        {
+                            model: Escuelas,
                         }
                     ]
                 },
@@ -366,9 +467,16 @@ exports.getOneAsignacion = async (req, res, next) =>{
                     model:Usuarios,
                     attributes:["idusuario","correo"]
                 }
-            ]
+            ],
+            limit:registro,
+            offset:(validPageNumber - 1) * registro
         })
-        res.json(portafolio)
+        res.json(
+            {
+                portafolio:portafolio,
+                total:Math.ceil(await  MaestroDocumento.count() / registro)
+            }
+        )
     }catch (error) {
         console.log(error);
         res.status(500).err(error);
@@ -381,19 +489,17 @@ exports.findOneFormato = async (req, res, next) =>{
     const id = req.params.id;
     const  iddetalle = req.params.iddetalle;
     try {
-        const formato = await  Formatos.findAll({
+        const formato = await  Formatos.findOne({
             where:{
                 USUARIOIdusuario:id,
                 idformato:iddetalle
             },
             include: [
-                {model: DetalleFormato,
-                    include: [
-                        {model:Lineas},
-                        {model:Sublinea}
-                    ]},
+                {model:Lineas},
+                {model:Sublinea},
                 {model: Proyectos},
-                {model: Fuentes}
+                {model: Fuentes},
+                {model:Escuela}
             ]
         })
         res.json(formato)
@@ -402,6 +508,72 @@ exports.findOneFormato = async (req, res, next) =>{
         res.status(500).err(error);
         res.json({
             message: 'Error al traer data',
+        });
+    }
+}
+exports.findOneFormatoId = async(req, res, next) =>{
+    const id = req.params.id;
+    try {
+        const formato = await  Formatos.findOne({
+            where:{
+                idformato:id
+            },
+            include: [
+                {model:Lineas},
+                {model:Sublinea},
+                {model: Proyectos},
+                {model: Fuentes},
+                {model:Escuela}
+            ]
+        })
+        res.json(formato)
+    }catch (error){
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al traer data',
+        });
+    }
+}
+exports.editFormato = async(req, res, next) =>{
+    const id = req.params.id;
+    const  idformato = req.params.iddetalle;
+
+    try {
+        await Formatos.update(req.body,{
+            where:{
+                USUARIOIdusuario:id,
+                idformato:idformato
+            }
+        })
+
+        res.json({message:'Se actulizo correctamente'})
+    }catch (error) {
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al actualizar documento',
+        });
+    }
+}
+
+exports.editFormatoId = async(req, res, next) =>{
+    const idformato = req.params.id;
+
+
+    try {
+        await Formatos.update(req.body,{
+            where:{
+                idformato:idformato
+            }
+        })
+
+        res.json({message:'Se actulizo correctamente'})
+    }catch (error) {
+        console.log(error);
+        res.status(500).err(error);
+        res.json({
+            message: 'Error al actualizar documento',
         });
     }
 }
@@ -463,7 +635,11 @@ exports.getPorfolio = async (req, res, next) => {
             });
             res.json({
                 folio: folio,
-                total: Math.ceil(await Documento.count() / registro),
+                total: Math.ceil(await Documento.count({
+                    where:  {
+                        USUARIOIdusuario: id
+                    }
+                }) / registro),
             });
         }else {
             res.json({
@@ -530,30 +706,14 @@ exports.deleteAtive = async(req,res,next) =>{
         })
     }
 }
-exports.createDetalleFormato = async (req,res,next) =>{
-    const formato = new DetalleFormato(req.body)
-    try {
-        await  formato.save()
-        res.json({
-            message:"Se creo correctamente el detalle formato",
-            idFormat: formato.iddetallefo
-        })
-    }catch (error){
-        console.log(error)
-        res.status(500)
-        res.json({
-            message:"error al crear"
-        })
-    }
-}
+
 
 exports.createFormato = async (req,res,next) =>{
     const formato = new Formatos(req.body)
     try {
         await  formato.save()
         res.json({
-            message:"Se creo correctamente el formato",
-            idFormat: formato.iddetallefo
+            message:"Se creo correctamente el formato"
         })
     }catch (error){
         console.log(error)

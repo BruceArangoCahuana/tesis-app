@@ -4,6 +4,8 @@ const Estados = require("../EntIty/Estados");
 const Sedes = require("../EntIty/Sedes");
 const Usuarios = require("../EntIty/Usuarios");
 const Portafolio = require("../EntIty/Folios");
+const Escuela = require("../EntIty/Escuelas");
+const {Op} = require("sequelize");
 
 
 
@@ -22,7 +24,7 @@ exports.upload = upload.single('path')
 
 //subir documentos
 exports.uploadAdd = async(req,res,next) =>{
-    const{codigodoc,titulo,fecha_registro,USUARIOIdusuario,ESTADOIdestados,SEDEIdsedes,FOLIOIdfolio}=req.body;
+    const{codigodoc,titulo,fecha_registro,USUARIOIdusuario,ESTADOIdestados,SEDEIdsedes,FOLIOIdfolio,ESCUELAIdescualas}=req.body;
     const path = req.file.filename
     const documentosCount = await Documento.count({ where: { USUARIOIdusuario } })
     if(documentosCount >= 8){
@@ -40,7 +42,8 @@ exports.uploadAdd = async(req,res,next) =>{
             USUARIOIdusuario:USUARIOIdusuario,
             ESTADOIdestados:ESTADOIdestados,
             SEDEIdsedes:SEDEIdsedes,
-            FOLIOIdfolio:FOLIOIdfolio
+            FOLIOIdfolio:FOLIOIdfolio,
+            ESCUELAIdescualas:ESCUELAIdescualas
         })
     try{
         await documento.save()
@@ -115,12 +118,13 @@ exports.getForPorta = async (req,res,next) =>{
 }
 exports.getDocumentsId = async (req,res,next) =>{
    const { id,idportafolio } = req.params;
+    let busqueda = req.query.busqueda
 
     try {
         const documentos =  await  Documento.findAll({
             where:{
-                USUARIOIdusuario:id,
-                FOLIOIdfolio:idportafolio
+                USUARIOIdusuario: id,
+                FOLIOIdfolio: idportafolio
             },
             include: [
                 {
@@ -130,6 +134,7 @@ exports.getDocumentsId = async (req,res,next) =>{
                 {
                     model: Estados,
                     attributes: ['name'],
+                    where: busqueda ? { name: { [Op.like]: `${busqueda}%` } } : {}
                 },
                 {
                     model:Sedes,
@@ -137,6 +142,9 @@ exports.getDocumentsId = async (req,res,next) =>{
                 },
                 {
                     model:Portafolio
+                },
+                {
+                    model:Escuela
                 }
             ],
 
