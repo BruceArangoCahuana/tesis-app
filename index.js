@@ -3,6 +3,7 @@ const router = require("./Router");
 const bodyParser = require("body-parser")
 const conexion = require("./database/conexion");
 const cors = require("cors");
+require('dotenv').config({path:"variable.env"})
 
 require("./EntIty/Usuarios");
 require("./EntIty/Fuentes");
@@ -32,7 +33,7 @@ app.use(cors())
 app.use(express.static('Public/document'))
 app.use("/",router());
 
-const port = 3500
+
 app.listen(port,() =>{
-    console.log("App listo puerto: "+ port);
+    console.log("App listo puerto: "+ process.env.PORTLOCAL);
 })
